@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Sadaqah Food Bank Now Serving</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+	<script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="/style/style.css">
+</head>
+<body>
+		<div id="app">
+<!-- Navigation -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+	<a class="navbar-brand" href="index.html">Sadaqah Food Bank</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+	<ul class="navbar-nav justify-content-end">
+		<li class="nav-item active">
+		  <a class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1-1" data-toggle="dropdown">Settings <span class="sr-only">(current)</span></a>
+			<div class="dropdown-menu dropdown-primary" id="your-custom-id">
+					<form @submit.prevent="sendLetterandNumber" class="form-inline">
+					<div class="form-group">
+                        <input class="form-control" type="text" placeholder="Client start Letter" aria-label="Search" v-model:value="client_letter">
+                        <input class="form-control" type="text" placeholder="Client start Number" aria-label="Search" v-model:value="client_num">
+                        <input type="submit" value="send"/>
+                    </div>
+					</form>
+			</div>
+		</li>
+	</ul>
+  </div>
+</nav>
+
+<div class="jumbotron jumbotron-fluid">
+	<div class="container" @submit.prevent="sendLetterandNumber">
+	  	<h1 class="display-5 text-center">WELCOME TO SADAQAH FOODBANK</h1>
+	  	<h2 class="display-5 text-center">Now serving number</h2>
+          <h1 class="display-1 text-center" id="fullc">{{fullclient}}</h1>
+          <h1 class="display-2 text-center" id="arabicFullC">{{fullArabicC}}</h1>
+          <div class="row justify-content-center">
+            <button type="submit" class="btn btn-primary" id="button_previous" v-on:click="client_num_minus();fullclient;sendLetterandNumber()" ><</button>
+            <button type="submit" class="btn btn-primary" id="button_next" @click="client_num_plus();fullclient;sendLetterandNumber()">></button>
+        </div>
+	</div>
+</div>
+
+
+</div>
+<script src="https://unpkg.com/vue-router"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = null; 
+const app = new Vue({
+el: '#app',
+data: function(){
+    return{
+    client_num: 1,
+    client_letter: 'A',
+    fullC: "A00",
+    fullArabicC: "A۰۱"
+    }
+},
+computed: {
+    fullclient: function () {
+        console.log("full_c "+this.client_num);
+        if (this.client_num > 9 && this.client_num < 100){
+            this.fullC = this.client_letter + this.client_num;
+        }
+        else{
+            if (this.client_num == "0"){
+                this.fullC= this.client_letter +"00";
+            }
+            else{
+                this.fullC= this.client_letter +"0"+ this.client_num;
+            }
+            this.fullC= this.client_letter +"0"+ this.client_num;
+        } 
+    
+        this.convertDigitIn(this.fullC);
+        return this.fullC;
+    },
+    
+    
+
+},
+methods: {
+    playSound (sound) {
+      if(sound) {
+        var audio = new Audio(sound);
+        var i=0;
+        f();
+        function f(){ 
+            i++;
+            audio.play();
+            x=document.getElementById("fullc");
+            x.style.color="blue";
+            if (i<6){
+                console.log("sounds");
+                setTimeout( f, 3000 );
+            }
+            else{
+                x.style.color="black";
+            }
+        }
+      }
+    },
+
+    convertDigitIn: function(enDigit) { // PERSIAN, ARABIC, URDO
+    var newValue="";
+    for (var i=0;i<enDigit.length;i++)
+    {
+        var ch=enDigit.charCodeAt(i);
+        if (ch>=48 && ch<=57)
+        {
+            // european digit range
+            var newChar=ch+1584;
+            newValue=newValue+String.fromCharCode(newChar);
+        }
+        else
+            newValue=newValue+String.fromCharCode(ch);
+    }
+        this.fullArabicC=newValue;
+        
+    },
+
+    getArabicClient: function(fullArabicC1){
+        return fullArabicC1
+    },
+    sendLetterandNumber: function(){
+    socket.emit('fullC',this.fullC);
+    
+    },
+    client_num_plus: function(){
+         this.client_num ++;
+        //return this.client_num = this.client_num + 1;
+    },
+    client_num_minus: function(){
+        return this.client_num= this.client_num - 1;
+    }
+    
+    },
+    
+created: function(){
+        socket=io();
+    },
+mounted: function(){
+    socket.on('fullC',function(fullC){
+        app.client_letter=fullC.charAt(0);
+        if (fullC.substring(1,4).startsWith("00")){
+            console.log("1 "+ fullC.substring(1,4));
+            app.client_num=fullC.substring(2,4);
+        }
+        else if (fullC.substring(1,4).startsWith("0")){
+            console.log("2 "+ fullC.substring(1,4));
+            app.client_num=fullC.substring(2,4);
+        }
+        else{
+            console.log("3 "+fullC.substring(1,4));
+            app.client_num=fullC.substring(1,4);
+        }
+        app.playSound('http://soundbible.com/mp3/Air Plane Ding-SoundBible.com-496729130.mp3');
+    })
+}
+});
+    </script>
+<!--<script src="settings_change.js"></script>-->
+</body>
+</html>

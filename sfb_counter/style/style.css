@@ -1,0 +1,30 @@
+body {
+    background-color: rgb(185, 217, 255);
+  }
+  .jumbotron {
+    height: 1200px;
+  }
+  .display-1 {
+   font-size: 300px;
+  
+  }
+  
+  .form-control {
+    margin-left: 1%;
+    width: 50%;
+  }
+  
+  label {
+    margin-left: 1%;
+  }
+  .btn {
+   margin: 7%;   
+  }
+
+@media only screen and (max-width: 600px) {
+.display-1{
+
+font-size: 100px;
+}
+	
+}
